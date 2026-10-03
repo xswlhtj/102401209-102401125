@@ -1,0 +1,49 @@
+.home-page { height: 100%; display: grid; grid-template-rows: var(--hero-height) minmax(0, 1fr); }
+.home-hero { position: relative; height: var(--hero-height); overflow: hidden; padding: 100px 32px 0; background: #dff2ff; }
+.home-hero__art { position: absolute; top: 50%; left: 50%; max-width: none; transform: translate(-50%, -50%); pointer-events: none; }
+.home-hero h1 { position: relative; color: var(--color-primary-dark); font-size: 38px; font-weight: 900; line-height: 41.04px; letter-spacing: 1px; white-space: nowrap; }
+.home-hero__description { position: relative; margin-top: 13px; color: #7a8da9; font-size: 18px; line-height: 24px; }
+.prototype-status { position: absolute; top: 17px; left: 34px; right: 22px; height: 22.4px; display: flex; align-items: center; justify-content: space-between; color: #050d18; font-size: 16.9px; font-weight: 800; line-height: 22.4px; }
+.prototype-status__icons { display: flex; align-items: center; gap: 8px; color: #08111b; }
+.prototype-signal { height: 14px; display: flex; align-items: flex-end; gap: 2px; }
+.prototype-signal i { width: 3px; border-radius: 2px; background: currentColor; }
+.prototype-signal i:nth-child(1) { height: 5px; }
+.prototype-signal i:nth-child(2) { height: 8px; }
+.prototype-signal i:nth-child(3) { height: 11px; }
+.prototype-signal i:nth-child(4) { height: 14px; }
+.prototype-wifi { position: relative; width: 20px; height: 15px; }
+.prototype-wifi__lines { position: absolute; top: 0.8px; left: 0.7px; }
+.prototype-wifi__dot { position: absolute; top: 12.17px; left: 8.83px; }
+.prototype-battery { position: relative; width: 26px; height: 13px; border: 1px solid currentColor; border-radius: 3px; }
+.prototype-battery::before { content: ""; position: absolute; inset: 2.6px; border-radius: 1px; background: currentColor; }
+.prototype-battery::after { content: ""; position: absolute; top: 3.6px; right: -2.4px; width: 2px; height: 5px; border-radius: 1px; background: currentColor; }
+.home-panel { min-height: 0; display: flex; flex-direction: column; border-radius: 22px 22px 0 0; background: linear-gradient(white, var(--color-background) 62%); }
+.home-search { flex-shrink: 0; height: 50px; margin: 16px 16px 0; padding: 0 16px; display: flex; align-items: center; gap: 13px; border: 0; border-radius: 17px; background: #f2f5fa; color: #8798b3; font-size: 17px; text-align: left; }
+.home-search .search-icon { color: #7890b1; }
+.home-search__placeholder { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-actions { flex-shrink: 0; height: 66px; margin: 16px 16px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.home-action { min-width: 0; padding: 0 12px; display: flex; justify-content: center; align-items: center; gap: 13px; border: 0; border-radius: 16px; color: white; font-size: 19.8px; font-weight: 800; white-space: nowrap; }
+.home-action--lost { background: linear-gradient(135deg, #ff735c, #ff8b72); }
+.home-action--found { background: linear-gradient(135deg, #4d8cff, #2f6ef1); }
+.home-action img { flex-shrink: 0; }
+.home-action__arrow { margin-left: 20px; }
+.home-search:disabled, .home-action:disabled, .home-feed__more:disabled { cursor: not-allowed; opacity: 1; }
+.home-feed__heading { flex-shrink: 0; height: 30.4px; margin: 22px 18px 4.6px; display: flex; align-items: center; justify-content: space-between; }
+.home-feed__heading h2 { font-size: 23px; font-weight: 900; line-height: 30.4px; }
+.home-feed__more { padding: 0 6px; border: 0; background: transparent; color: #8494ad; font-size: 15px; line-height: 20px; }
+.home-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: none; scroll-padding-block: 7px 14px; }
+.home-scroll::-webkit-scrollbar { display: none; }
+.home-list { margin: 0; padding: 7px 16px 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; list-style: none; }
+.home-list > li { min-width: 0; }
+.home-feed__empty { padding: 40px 16px; text-align: center; color: var(--color-muted); }
+@media (max-width: 359px) {
+  .home-action { gap: 9px; padding-inline: 8px; font-size: 16px; }
+  .home-action .search-icon { width: 22px; height: 22px; }
+  .home-action__arrow { margin-left: 0; }
+  .home-search { font-size: 15px; }
+}
+@media (max-height: 719px) {
+  .home-hero { padding-top: 80px; }
+  .home-hero h1 { font-size: 32px; }
+  .home-hero__description { margin-top: 9px; font-size: 16px; }
+}

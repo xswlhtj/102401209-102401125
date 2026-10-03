@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#dff2ff">
+  <title>校园失物招领</title>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/pages.css">
+  <!-- A 的 core / data / services 脚本接入时放在 UI 脚本之前。 -->
+  <script defer src="assets/js/ui/item-card.js"></script>
+  <script defer src="assets/js/pages/home.js"></script>
+  <!-- A 尚未接入时显示原型样例；检测到 assets/js/app.js 后自动跳过。 -->
+  <script defer src="assets/js/pages/home-preview.js"></script>
+  <!-- A 的 router.js、app.js 接入时放在页面脚本之后，由 app.js 初始化。 -->
+</head>
+<body>
+  <a class="skip-link" href="#app">跳到主要内容</a>
+  <div class="app-shell">
+    <main id="app" class="app-main" tabindex="-1">
+      <!-- 预览脚本会替换此外壳；A 接入后仍通过 home.render 使用真实数据。 -->
+      <header class="home-hero">
+        <img class="home-hero__art" src="assets/images/figma/hero-main.svg" alt="" width="430" height="230">
+        <h1>校园失物招领</h1>
+        <p class="home-hero__description">让失物更快回到主人身边</p>
+      </header>
+    </main>
+    <nav class="bottom-nav" aria-label="主要导航">
+      <a class="bottom-nav__item" href="#/home" aria-current="page"><svg class="nav-icon nav-icon--home" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 12 15 .8 28 12v16H2Z"/></svg><span>首页</span></a>
+      <button class="bottom-nav__item" type="button" disabled><svg class="nav-icon nav-icon--publish" viewBox="0 0 27 27" aria-hidden="true"><rect x="0.5" y="0.5" width="26" height="26" rx="6.5"/><path d="M13.5 7v13M7 13.5h13"/></svg><span>发布</span></button>
+      <button class="bottom-nav__item" type="button" disabled><svg class="nav-icon nav-icon--profile" viewBox="0 0 30 29" aria-hidden="true"><circle cx="15" cy="8.4" r="7.4"/><path d="M2.6 28v-1.8c0-7 5.5-12.2 12.4-12.2s12.4 5.2 12.4 12.2V28"/></svg><span>我的</span></button>
+      <span class="home-indicator" aria-hidden="true"></span>
+    </nav>
+  </div>
+  <!-- 固定界面结构复用此模板，不含任何物品数据，不在加载时执行初始化。 -->
+  <template id="home-template">
+    <section class="home-page">
+      <header class="home-hero">
+        <img class="home-hero__art" src="assets/images/figma/hero-main.svg" alt="" width="430" height="230">
+        <!-- 原型的装饰状态栏，不表示真实系统时间或设备状态。 -->
+        <div class="prototype-status" aria-hidden="true">
+          <span>9:41</span>
+          <span class="prototype-status__icons">
+            <span class="prototype-signal"><i></i><i></i><i></i><i></i></span>
+            <span class="prototype-wifi"><img class="prototype-wifi__lines" src="assets/images/figma/wifi-lines.svg" alt=""><img class="prototype-wifi__dot" src="assets/images/figma/wifi-dot.svg" alt=""></span>
+            <span class="prototype-battery"></span>
+          </span>
+        </div>
+        <h1>校园失物招领</h1>
+        <p class="home-hero__description">让失物更快回到主人身边</p>
+      </header>
+      <section class="home-panel" aria-label="首页信息">
+        <button class="home-search" type="button" disabled><span class="search-icon" aria-hidden="true"></span><span class="home-search__placeholder">搜索物品，例如：校园卡</span></button>
+        <div class="home-actions">
+          <button class="home-action home-action--lost" type="button" disabled><span class="search-icon" aria-hidden="true"></span><span>发布寻物<span class="home-action__arrow" aria-hidden="true">›</span></span></button>
+          <button class="home-action home-action--found" type="button" disabled><img src="assets/images/figma/box.svg" alt=""><span>发布招领<span class="home-action__arrow" aria-hidden="true">›</span></span></button>
+        </div>
+        <div class="home-feed__heading"><h2 id="home-feed-title">最新信息</h2><button class="home-feed__more" type="button" disabled>更多 ›</button></div>
+        <div class="home-scroll" role="region" aria-labelledby="home-feed-title" tabindex="0">
+          <ul class="home-list"></ul>
+        </div>
+      </section>
+    </section>
+  </template>
+  <noscript><p class="noscript-message">请启用 JavaScript 后使用校园失物招领。</p></noscript>
+</body>
+</html>
