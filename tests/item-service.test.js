@@ -3,20 +3,52 @@ import { describe, it, expect } from "vitest";
 import "../assets/js/services/item-service.js";
 
 
-function createFakeStore(items) {
+function createFakeStore(initialItems, options) {
+  let items = Array.isArray(initialItems)
+    ? initialItems.slice()
+    : [];
+
+  const settings = options || {};
+
   return {
     load() {
+      if (settings.failLoad) {
+        return {
+          ok: false,
+          error: {
+            code: "STORAGE_READ_FAILED",
+            message: "读取失败"
+          }
+        };
+      }
+
       return {
         ok: true,
-        data: items
+        data: items.slice()
       };
     },
 
     save(newItems) {
+      if (settings.failSave) {
+        return {
+          ok: false,
+          error: {
+            code: "STORAGE_WRITE_FAILED",
+            message: "保存失败"
+          }
+        };
+      }
+
+      items = newItems.slice();
+
       return {
         ok: true,
-        data: newItems
+        data: items.slice()
       };
+    },
+
+    getItems() {
+      return items.slice();
     }
   };
 }
@@ -38,14 +70,15 @@ describe("item service list", () => {
       }
     ];
 
-    const store = createFakeStore(items);
+    const store =
+      createFakeStore(items);
 
     const service =
-      globalThis.LostFound.services.createItemService(
-        store
-      );
+      globalThis.LostFound.services
+        .createItemService(store);
 
-    const result = service.list({});
+    const result =
+      service.list({});
 
     expect(result.ok).toBe(true);
     expect(result.data.length).toBe(2);
@@ -56,29 +89,27 @@ describe("item service list", () => {
     const items = [
       {
         id: "old",
-        name: "旧记录",
         createdAt: "2026-09-20T10:00:00+08:00"
       },
       {
         id: "new",
-        name: "新记录",
         createdAt: "2026-09-25T10:00:00+08:00"
       },
       {
         id: "middle",
-        name: "中间记录",
         createdAt: "2026-09-22T10:00:00+08:00"
       }
     ];
 
-    const store = createFakeStore(items);
+    const store =
+      createFakeStore(items);
 
     const service =
-      globalThis.LostFound.services.createItemService(
-        store
-      );
+      globalThis.LostFound.services
+        .createItemService(store);
 
-    const result = service.list({});
+    const result =
+      service.list({});
 
     expect(result.ok).toBe(true);
 
@@ -111,12 +142,12 @@ describe("item service list", () => {
         return item.id;
       });
 
-    const store = createFakeStore(items);
+    const store =
+      createFakeStore(items);
 
     const service =
-      globalThis.LostFound.services.createItemService(
-        store
-      );
+      globalThis.LostFound.services
+        .createItemService(store);
 
     service.list({});
 
@@ -129,19 +160,176 @@ describe("item service list", () => {
 
 
   it("filters 不是对象时应该返回错误", () => {
-    const store = createFakeStore([]);
+    const store =
+      createFakeStore([]);
 
     const service =
-      globalThis.LostFound.services.createItemService(
-        store
-      );
+      globalThis.LostFound.services
+        .createItemService(store);
 
-    const result = service.list("错误参数");
+    const result =
+      service.list("错误参数");
 
     expect(result.ok).toBe(false);
+
     expect(result.error.code).toBe(
       "INVALID_FILTERS"
     );
+  });
+
+});
+
+
+describe("item service create", () => {
+
+  it("发布寻物时应创建 active 状态记录并保存", () => {
+    const store =
+      createFakeStore([]);
+
+    const service =
+      globalThis.LostFound.services
+        .createItemService(store);
+
+    const result =
+      service.create({
+        type: "lost",
+        name: "黑色蓝牙耳机",
+        category: "电子设备",
+        eventDate: "2026-10-03",
+        location: "东三教学楼",
+        description: "充电盒有轻微划痕",
+        image: "",
+        contactType: "QQ",
+        contactValue: "123456789"
+      });
+
+    expect(result.ok).toBe(true);
+
+    expect(result.data.type).toBe("lost");
+    expect(result.data.status).toBe("active");
+    expect(result.data.ownerId).toBe(
+      "demo-user-001"
+    );
+
+    expect(result.data.id).toMatch(
+      /^item-/
+    );
+
+    expect(
+      store.getItems().length
+    ).toBe(1);
+
+    expect(
+      store.getItems()[0].name
+    ).toBe("黑色蓝牙耳机");
+  });
+
+
+  it("发布招领时应创建 active 状态记录并保存", () => {
+    const store =
+      createFakeStore([]);
+
+    const service =
+      globalThis.LostFound.services
+        .createItemService(store);
+
+    const result =
+      service.create({
+        type: "found",
+        name: "校园卡",
+        category: "证件卡片",
+        eventDate: "2026-10-03",
+        location: "图书馆三楼",
+        description: "在座位旁捡到",
+        image: "",
+        contactType: "手机号",
+        contactValue: "13812345678"
+      });
+
+    expect(result.ok).toBe(true);
+
+    expect(result.data.type).toBe(
+      "found"
+    );
+
+    expect(result.data.status).toBe(
+      "active"
+    );
+
+    expect(
+      store.getItems().length
+    ).toBe(1);
+  });
+
+
+  it("缺少必填字段时应该拒绝发布", () => {
+    const store =
+      createFakeStore([]);
+
+    const service =
+      globalThis.LostFound.services
+        .createItemService(store);
+
+    const result =
+      service.create({
+        type: "lost",
+        name: "",
+        category: "电子设备",
+        eventDate: "2026-10-03",
+        location: "东三教学楼",
+        description: "",
+        image: "",
+        contactType: "QQ",
+        contactValue: "123456789"
+      });
+
+    expect(result.ok).toBe(false);
+
+    expect(result.error.code).toBe(
+      "MISSING_REQUIRED_FIELD"
+    );
+
+    expect(
+      store.getItems().length
+    ).toBe(0);
+  });
+
+
+  it("保存失败时不能误报发布成功", () => {
+    const store =
+      createFakeStore(
+        [],
+        {
+          failSave: true
+        }
+      );
+
+    const service =
+      globalThis.LostFound.services
+        .createItemService(store);
+
+    const result =
+      service.create({
+        type: "lost",
+        name: "黑色雨伞",
+        category: "雨具",
+        eventDate: "2026-10-03",
+        location: "食堂门口",
+        description: "",
+        image: "",
+        contactType: "QQ",
+        contactValue: "123456789"
+      });
+
+    expect(result.ok).toBe(false);
+
+    expect(result.error.code).toBe(
+      "STORAGE_WRITE_FAILED"
+    );
+
+    expect(
+      store.getItems().length
+    ).toBe(0);
   });
 
 });
