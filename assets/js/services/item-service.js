@@ -5,7 +5,9 @@
   lostFound.services = lostFound.services || {};
 
 
+  // =========================
   // 创建统一错误结果
+  // =========================
   function createError(code, message) {
     return {
       ok: false,
@@ -17,7 +19,9 @@
   }
 
 
-  // 把时间字符串转为时间戳，供排序使用
+  // =========================
+  // 时间字符串转时间戳
+  // =========================
   function toTimestamp(value) {
     const time = Date.parse(value);
 
@@ -25,7 +29,19 @@
   }
 
 
+  // =========================
+  // 清理字符串输入
+  // =========================
+  function cleanString(value) {
+    return typeof value === "string"
+      ? value.trim()
+      : "";
+  }
+
+
+  // =========================
   // 创建物品业务服务
+  // =========================
   function createItemService(store) {
 
     if (
@@ -39,13 +55,13 @@
     }
 
 
-    // -------------------------
+    // =========================
     // 查询物品列表
-    // -------------------------
+    // =========================
     function list(filters) {
 
-      // F01阶段暂时只负责读取和排序。
-      // filters 参数保留给之后的 F04 搜索与筛选功能。
+      // F01阶段负责读取和排序。
+      // filters 保留给之后 F04 搜索和筛选功能使用。
       const query = filters || {};
 
       if (
@@ -58,15 +74,18 @@
         );
       }
 
+
       const result = store.load();
 
-      // 数据层读取失败，直接把错误继续返回
+      // 读取失败时直接返回 store 的错误
       if (!result.ok) {
         return result;
       }
 
-      // 复制一份数组再排序，避免影响原始数据
+
+      // 复制数组，避免 sort 修改原始数据
       const items = result.data.slice();
+
 
       // createdAt 越新的记录排在越前面
       items.sort(function (a, b) {
@@ -76,6 +95,7 @@
         );
       });
 
+
       return {
         ok: true,
         data: items
@@ -83,13 +103,201 @@
     }
 
 
+    // =========================
+    // 新增一条失物招领记录
+    // =========================
+    function create(formData) {
+
+      // -------------------------
+      // 检查参数基本格式
+      // -------------------------
+      if (
+        !formData ||
+        typeof formData !== "object" ||
+        Array.isArray(formData)
+      ) {
+        return createError(
+          "INVALID_FORM_DATA",
+          "发布信息格式错误"
+        );
+      }
+
+
+      // -------------------------
+      // 只允许 lost / found
+      // -------------------------
+      if (
+        formData.type !== "lost" &&
+        formData.type !== "found"
+      ) {
+        return createError(
+          "INVALID_TYPE",
+          "信息类型必须为 lost 或 found"
+        );
+      }
+
+
+      // -------------------------
+      // 清理用户输入
+      // -------------------------
+      const name =
+        cleanString(formData.name);
+
+      const category =
+        cleanString(formData.category);
+
+      const eventDate =
+        cleanString(formData.eventDate);
+
+      const location =
+        cleanString(formData.location);
+
+      const description =
+        cleanString(formData.description);
+
+      const image =
+        cleanString(formData.image);
+
+      const contactType =
+        cleanString(formData.contactType);
+
+      const contactValue =
+        cleanString(formData.contactValue);
+
+
+      // -------------------------
+      // 基础必填检查
+      // -------------------------
+      if (
+        !name ||
+        !category ||
+        !eventDate ||
+        !location ||
+        !contactType ||
+        !contactValue
+      ) {
+        return createError(
+          "MISSING_REQUIRED_FIELD",
+          "发布信息缺少必填内容"
+        );
+      }
+
+
+      // -------------------------
+      // 读取原有记录
+      // -------------------------
+      const loadResult = store.load();
+
+      if (!loadResult.ok) {
+        return loadResult;
+      }
+
+
+      // 当前时间
+      const now =
+        new Date().toISOString();
+
+
+      // -------------------------
+      // 创建新记录
+      // -------------------------
+      const item = {
+
+        // 自动生成ID
+        id:
+          "item-" +
+          Date.now() +
+          "-" +
+          Math.random()
+            .toString(36)
+            .slice(2, 8),
+
+        // 当前项目为单机演示，
+        // 固定使用演示用户
+        ownerId:
+          "demo-user-001",
+
+        type:
+          formData.type,
+
+        name:
+          name,
+
+        category:
+          category,
+
+        eventDate:
+          eventDate,
+
+        location:
+          location,
+
+        description:
+          description,
+
+        image:
+          image,
+
+        contactType:
+          contactType,
+
+        contactValue:
+          contactValue,
+
+        // 新发布的信息统一为 active
+        status:
+          "active",
+
+        createdAt:
+          now,
+
+        updatedAt:
+          now
+      };
+
+
+      // -------------------------
+      // 加入原有记录
+      // -------------------------
+      const nextItems =
+        loadResult.data.slice();
+
+      nextItems.push(item);
+
+
+      // -------------------------
+      // 保存到 localStorage
+      // -------------------------
+      const saveResult =
+        store.save(nextItems);
+
+      if (!saveResult.ok) {
+        return saveResult;
+      }
+
+
+      // 只有真正保存成功以后
+      // 才返回发布成功
+      return {
+        ok: true,
+        data: item
+      };
+    }
+
+
+    // =========================
+    // 对外提供的接口
+    // =========================
     return {
-      list: list
+      list: list,
+      create: create
     };
   }
 
 
-  // 暴露给其他脚本使用
+  // =========================
+  // 暴露给其他脚本
+  // =========================
   lostFound.services.createItemService =
     createItemService;
 
