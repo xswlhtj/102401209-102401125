@@ -9,12 +9,28 @@
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/pages.css">
-  <!-- A 的 core / data / services 脚本接入时放在 UI 脚本之前。 -->
+  <!-- A：状态业务规则 -->
+  <script defer src="assets/js/core/status.js"></script>
+
+  <!-- A：演示数据和本地存储 -->
+  <script defer src="assets/js/data/demo-data.js"></script>
+  <script defer src="assets/js/data/store.js"></script>
+
+  <!-- A：业务服务 -->
+  <script defer src="assets/js/services/item-service.js"></script>
+
+  <!-- B：界面组件 -->
   <script defer src="assets/js/ui/item-card.js"></script>
+
+  <!-- B：首页页面 -->
   <script defer src="assets/js/pages/home.js"></script>
-  <!-- A 尚未接入时显示原型样例；检测到 assets/js/app.js 后自动跳过。 -->
+
+  <!-- B：首页临时预览；检测到 app.js 后会自动跳过 -->
   <script defer src="assets/js/pages/home-preview.js"></script>
-  <!-- A 的 router.js、app.js 接入时放在页面脚本之后，由 app.js 初始化。 -->
+
+  <!-- A：应用入口 -->
+  <script defer src="assets/js/app.js"></script>
+  
 </head>
 <body>
   <a class="skip-link" href="#app">跳到主要内容</a>
