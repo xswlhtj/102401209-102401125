@@ -22,11 +22,12 @@
   font-weight: 700;
   line-height: 17px;
 }
-.bottom-nav__item[aria-current="page"] { color: var(--color-primary); gap: 0; }
+.bottom-nav__item[aria-current="page"] { color: var(--color-primary); }
+.bottom-nav__item[data-nav="home"][aria-current="page"] { gap: 0; }
 .bottom-nav__item:disabled { cursor: not-allowed; }
 .nav-icon { flex: 0 0 auto; width: 30px; height: 30px; overflow: visible; }
 .nav-icon--home { width: 29px; height: 29px; margin-top: -2px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linejoin: round; }
-.nav-icon--publish { width: 27px; height: 27px; fill: #91a0b7; stroke: white; stroke-width: 3; stroke-linecap: round; }
+.nav-icon--publish { width: 27px; height: 27px; fill: currentColor; stroke: white; stroke-width: 3; stroke-linecap: round; }
 .nav-icon--publish rect { stroke: none; }
 .nav-icon--profile { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 .home-indicator { position: absolute; bottom: calc(5px + env(safe-area-inset-bottom, 0px)); left: 50%; width: 110px; height: 4px; transform: translateX(-50%); border-radius: 99px; background: #7f8da1; }
