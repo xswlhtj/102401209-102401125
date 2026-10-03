@@ -1,0 +1,28 @@
+{
+  "name": "web_development",
+  "version": "1.0.0",
+  "description": "2026秋软件工程第二次结对作业——程序实现",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xswlhtj/web_development.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/xswlhtj/web_development/issues"
+  },
+  "homepage": "https://github.com/xswlhtj/web_development#readme",
+  "devDependencies": {
+    "vitest": "^5.0.3"
+  }
+}
