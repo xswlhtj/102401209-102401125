@@ -167,8 +167,8 @@
 
   function renderPublished(container, state, options) {
     if (!state || !Array.isArray(state.items)) throw new TypeError("我的发布页面需要记录数组");
-    if (!options || typeof options.getStatusText !== "function" || typeof options.onCloseItem !== "function") {
-      throw new TypeError("我的发布页面需要状态文字和状态修改接口");
+    if (!options || typeof options.getStatusText !== "function") {
+      throw new TypeError("我的发布页面需要状态文字接口");
     }
     const document = container.ownerDocument;
     const template = document.getElementById("my-published-template");
@@ -180,7 +180,6 @@
     const list = container.querySelector(".my-published-list");
     const empty = container.querySelector(".my-published-state");
     const feedback = container.querySelector(".my-feedback");
-    const showStatusDialog = bindStatusDialog(container, options);
     container.querySelectorAll("[data-my-type]").forEach(function (button) {
       const selected = button.dataset.myType === activeType;
       button.classList.toggle("is-active", selected);
@@ -192,6 +191,18 @@
       });
     });
 
+    if (state.loading) {
+      empty.hidden = false;
+      empty.classList.add("is-loading");
+      empty.setAttribute("role", "status");
+      empty.setAttribute("aria-live", "polite");
+      empty.append(
+        element(document, "span", "feedback-spinner"),
+        element(document, "h3", "", "正在加载我的发布"),
+        element(document, "p", "", "请稍候…")
+      );
+      return;
+    }
     if (state.feedback) {
       feedback.hidden = false;
       feedback.textContent = state.feedback;
@@ -202,6 +213,12 @@
       const title = element(document, "h3", "", "加载失败");
       const message = element(document, "p", "", state.error);
       empty.append(title, message);
+      if (typeof options.onRetry === "function") {
+        const retry = element(document, "button", "my-published-state__action", "重新加载");
+        retry.type = "button";
+        retry.addEventListener("click", options.onRetry);
+        empty.append(retry);
+      }
       return;
     }
     if (state.items.length === 0) {
@@ -213,6 +230,10 @@
       empty.append(title, message, publish);
       return;
     }
+    if (typeof options.onCloseItem !== "function" || typeof options.getDetailHref !== "function") {
+      throw new TypeError("我的发布记录需要详情和状态修改接口");
+    }
+    const showStatusDialog = bindStatusDialog(container, options);
     list.setAttribute("aria-label", "共 " + state.items.length + " 条我的发布");
     state.items.forEach(function (item) {
       const row = element(document, "li", "");

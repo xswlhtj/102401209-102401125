@@ -64,6 +64,19 @@
     content.replaceChildren(state);
   }
 
+  function renderLoading(content) {
+    const document = content.ownerDocument;
+    const state = element(document, "section", "search-state search-state--loading");
+    state.setAttribute("role", "status");
+    state.setAttribute("aria-live", "polite");
+    state.append(
+      element(document, "span", "feedback-spinner"),
+      element(document, "h2", "", "正在加载信息"),
+      element(document, "p", "", "请稍候…")
+    );
+    content.replaceChildren(state);
+  }
+
   function renderEmpty(content, input) {
     const document = content.ownerDocument;
     const state = element(document, "section", "search-state search-state--empty");
@@ -162,6 +175,10 @@
     });
     updateTypeButtons();
 
+    if (pageState.loading) {
+      renderLoading(content);
+      return;
+    }
     if (!pageState.searched) {
       renderIntro(content, pageState.suggestions, options.onSearch);
       root.requestAnimationFrame(function () { input.focus(); });
