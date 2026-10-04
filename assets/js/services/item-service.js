@@ -130,25 +130,22 @@
 
 
       // -------------------------
-      // 搜索与筛选
+      // 搜索和筛选
       // -------------------------
       const items =
         result.data.filter(
           function (item) {
 
-            // 类型
             const typeMatches =
               type === "all" ||
               item.type === type;
 
 
-            // 类别
             const categoryMatches =
               category === "all" ||
               item.category === category;
 
 
-            // 关键词搜索范围
             const searchText = [
               item.name,
               item.category,
@@ -176,7 +173,7 @@
 
 
       // -------------------------
-      // 按发布时间倒序
+      // 按发布时间从新到旧排序
       // -------------------------
       items.sort(
         function (a, b) {
@@ -325,7 +322,7 @@
             .toString(36)
             .slice(2, 8),
 
-        // 当前为单机演示用户
+        // 当前项目使用演示用户
         ownerId:
           "demo-user-001",
 
@@ -356,7 +353,7 @@
         contactValue:
           contactValue,
 
-        // 新发布统一为 active
+        // 新发布记录统一为 active
         status:
           "active",
 
@@ -369,7 +366,7 @@
 
 
       // -------------------------
-      // 保存新记录
+      // 加入已有记录
       // -------------------------
       const nextItems =
         loadResult.data.slice();
@@ -380,6 +377,9 @@
       );
 
 
+      // -------------------------
+      // 保存
+      // -------------------------
       const saveResult =
         store.save(
           nextItems
@@ -420,7 +420,7 @@
 
 
       // -------------------------
-      // 读取数据
+      // 读取全部数据
       // -------------------------
       const result =
         store.load();
@@ -432,7 +432,7 @@
 
 
       // -------------------------
-      // 查找对应记录
+      // 根据 ID 查找记录
       // -------------------------
       const item =
         result.data.find(
@@ -445,7 +445,7 @@
 
 
       // -------------------------
-      // 记录不存在
+      // 没找到记录
       // -------------------------
       if (!item) {
         return createError(
@@ -498,21 +498,20 @@
 
 
       // -------------------------
-      // 只筛选该用户发布的信息
+      // 筛选该用户发布的信息
       // -------------------------
       const items =
         result.data.filter(
           function (item) {
             return (
-              item.ownerId ===
-              userId
+              item.ownerId === userId
             );
           }
         );
 
 
       // -------------------------
-      // 按发布时间倒序
+      // 按发布时间从新到旧排序
       // -------------------------
       items.sort(
         function (a, b) {
@@ -536,13 +535,161 @@
 
 
     // =========================
+    // F08
+    // 将记录标记为已完成
+    // =========================
+    function closeItem(id, actorId) {
+
+      const itemId =
+        cleanString(id);
+
+      const userId =
+        cleanString(actorId);
+
+
+      // -------------------------
+      // 参数检查
+      // -------------------------
+      if (!itemId) {
+        return createError(
+          "INVALID_ID",
+          "物品 ID 不能为空"
+        );
+      }
+
+
+      if (!userId) {
+        return createError(
+          "INVALID_ACTOR_ID",
+          "操作用户 ID 不能为空"
+        );
+      }
+
+
+      // -------------------------
+      // 读取全部记录
+      // -------------------------
+      const result =
+        store.load();
+
+
+      if (!result.ok) {
+        return result;
+      }
+
+
+      // -------------------------
+      // 查找记录位置
+      // -------------------------
+      const index =
+        result.data.findIndex(
+          function (item) {
+            return (
+              item.id === itemId
+            );
+          }
+        );
+
+
+      // -------------------------
+      // 1. 记录必须存在
+      // -------------------------
+      if (index === -1) {
+        return createError(
+          "ITEM_NOT_FOUND",
+          "没有找到这条信息"
+        );
+      }
+
+
+      const oldItem =
+        result.data[index];
+
+
+      // -------------------------
+      // 2. 必须是发布者本人
+      // -------------------------
+      if (
+        oldItem.ownerId !== userId
+      ) {
+        return createError(
+          "FORBIDDEN",
+          "无权修改这条信息"
+        );
+      }
+
+
+      // -------------------------
+      // 3. 已经完成不能重复修改
+      // -------------------------
+      if (
+        oldItem.status === "closed"
+      ) {
+        return createError(
+          "ITEM_ALREADY_CLOSED",
+          "该信息已经完成，无需重复修改"
+        );
+      }
+
+
+      // -------------------------
+      // 创建修改后的新记录
+      // -------------------------
+      const updatedItem = {
+        ...oldItem,
+
+        status:
+          "closed",
+
+        updatedAt:
+          new Date().toISOString()
+      };
+
+
+      // -------------------------
+      // 创建新的数据数组
+      // -------------------------
+      const nextItems =
+        result.data.slice();
+
+
+      nextItems[index] =
+        updatedItem;
+
+
+      // -------------------------
+      // 保存修改结果
+      // -------------------------
+      const saveResult =
+        store.save(
+          nextItems
+        );
+
+
+      if (!saveResult.ok) {
+        return saveResult;
+      }
+
+
+      // -------------------------
+      // 保存成功
+      // -------------------------
+      return {
+        ok: true,
+        data: updatedItem
+      };
+    }
+
+
+    // =========================
     // 对外提供接口
     // =========================
     return {
       list: list,
       create: create,
       getById: getById,
-      getByOwner: getByOwner
+      getByOwner: getByOwner,
+      closeItem: closeItem
     };
   }
 
