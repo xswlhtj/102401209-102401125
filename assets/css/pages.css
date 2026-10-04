@@ -323,7 +323,8 @@
 .status-cancel { margin-top: 11px; border: 1px solid #2e73fa; background: white; color: #2e73fa; }
 .status-confirm:disabled, .status-cancel:disabled { cursor: wait; opacity: .65; }
 
-.status-success-panel { padding: 139px 24px 30px; text-align: center; }
+.status-success-panel { padding: 139px 24px 40px; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: none; scroll-padding-block: 20px 40px; text-align: center; }
+.status-success-panel::-webkit-scrollbar { display: none; }
 .status-success-mark { position: relative; width: 104px; height: 104px; margin: 0 auto; border-radius: 50%; background: #e1f8ed; }
 .status-success-mark span { position: absolute; top: 33px; left: 30px; width: 45px; height: 25px; border-bottom: 7px solid #42c781; border-left: 7px solid #42c781; border-radius: 3px; transform: rotate(-45deg); }
 .status-success-panel h2 { margin-top: 18px; font-size: 25px; line-height: 35px; }

@@ -236,10 +236,12 @@
     container.querySelector(".status-success-card h3").textContent = item.name;
     container.querySelector("[data-old-status]").textContent = options.getStatusText(item.type, "active");
     container.querySelector("[data-new-status]").textContent = options.getStatusText(item.type, "closed");
-    container.querySelector(".status-success-return").addEventListener("click", function (event) {
-      if (typeof options.onReturn !== "function") return;
-      event.preventDefault();
-      options.onReturn(message);
+    container.querySelectorAll(".status-success-page .page-back, .status-success-return").forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        if (typeof options.onReturn !== "function") return;
+        event.preventDefault();
+        options.onReturn(message);
+      });
     });
   }
 
