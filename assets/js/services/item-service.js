@@ -78,7 +78,9 @@
     // =========================
     function list(filters) {
 
-      const query = filters || {};
+      const query =
+        filters || {};
+
 
       if (
         typeof query !== "object" ||
@@ -92,18 +94,20 @@
 
 
       // -------------------------
-      // 整理筛选条件
+      // 整理搜索条件
       // -------------------------
       const keyword =
         normalizeSearchText(
           query.keyword
         );
 
+
       const type =
         query.type === "lost" ||
         query.type === "found"
           ? query.type
           : "all";
+
 
       const category =
         typeof query.category === "string" &&
@@ -114,9 +118,11 @@
 
 
       // -------------------------
-      // 读取全部数据
+      // 读取数据
       // -------------------------
-      const result = store.load();
+      const result =
+        store.load();
+
 
       if (!result.ok) {
         return result;
@@ -124,58 +130,66 @@
 
 
       // -------------------------
-      // 搜索和筛选
+      // 搜索与筛选
       // -------------------------
       const items =
-        result.data.filter(function (item) {
+        result.data.filter(
+          function (item) {
 
-          // 类型筛选
-          const typeMatches =
-            type === "all" ||
-            item.type === type;
-
-
-          // 类别筛选
-          const categoryMatches =
-            category === "all" ||
-            item.category === category;
+            // 类型
+            const typeMatches =
+              type === "all" ||
+              item.type === type;
 
 
-          // 搜索范围：
-          // 名称、类别、地点、描述
-          const searchText = [
-            item.name,
-            item.category,
-            item.location,
-            item.description
-          ]
-            .map(normalizeSearchText)
-            .join(" ");
+            // 类别
+            const categoryMatches =
+              category === "all" ||
+              item.category === category;
 
 
-          // 空关键词表示不限制
-          const keywordMatches =
-            !keyword ||
-            searchText.includes(keyword);
+            // 关键词搜索范围
+            const searchText = [
+              item.name,
+              item.category,
+              item.location,
+              item.description
+            ]
+              .map(normalizeSearchText)
+              .join(" ");
 
 
-          return (
-            typeMatches &&
-            categoryMatches &&
-            keywordMatches
-          );
-        });
+            const keywordMatches =
+              !keyword ||
+              searchText.includes(
+                keyword
+              );
 
 
-      // -------------------------
-      // 按发布时间从新到旧排序
-      // -------------------------
-      items.sort(function (a, b) {
-        return (
-          toTimestamp(b.createdAt) -
-          toTimestamp(a.createdAt)
+            return (
+              typeMatches &&
+              categoryMatches &&
+              keywordMatches
+            );
+          }
         );
-      });
+
+
+      // -------------------------
+      // 按发布时间倒序
+      // -------------------------
+      items.sort(
+        function (a, b) {
+          return (
+            toTimestamp(
+              b.createdAt
+            ) -
+            toTimestamp(
+              a.createdAt
+            )
+          );
+        }
+      );
 
 
       return {
@@ -187,12 +201,12 @@
 
     // =========================
     // F02 / F03
-    // 新增一条失物招领记录
+    // 新增失物招领记录
     // =========================
     function create(formData) {
 
       // -------------------------
-      // 检查参数格式
+      // 参数格式检查
       // -------------------------
       if (
         !formData ||
@@ -207,7 +221,7 @@
 
 
       // -------------------------
-      // 只允许 lost / found
+      // 类型检查
       // -------------------------
       if (
         formData.type !== "lost" &&
@@ -221,35 +235,51 @@
 
 
       // -------------------------
-      // 清理用户输入
+      // 清理输入
       // -------------------------
       const name =
-        cleanString(formData.name);
+        cleanString(
+          formData.name
+        );
 
       const category =
-        cleanString(formData.category);
+        cleanString(
+          formData.category
+        );
 
       const eventDate =
-        cleanString(formData.eventDate);
+        cleanString(
+          formData.eventDate
+        );
 
       const location =
-        cleanString(formData.location);
+        cleanString(
+          formData.location
+        );
 
       const description =
-        cleanString(formData.description);
+        cleanString(
+          formData.description
+        );
 
       const image =
-        cleanString(formData.image);
+        cleanString(
+          formData.image
+        );
 
       const contactType =
-        cleanString(formData.contactType);
+        cleanString(
+          formData.contactType
+        );
 
       const contactValue =
-        cleanString(formData.contactValue);
+        cleanString(
+          formData.contactValue
+        );
 
 
       // -------------------------
-      // 基础必填检查
+      // 必填检查
       // -------------------------
       if (
         !name ||
@@ -272,6 +302,7 @@
       const loadResult =
         store.load();
 
+
       if (!loadResult.ok) {
         return loadResult;
       }
@@ -286,7 +317,6 @@
       // -------------------------
       const item = {
 
-        // 自动生成 ID
         id:
           "item-" +
           Date.now() +
@@ -295,7 +325,7 @@
             .toString(36)
             .slice(2, 8),
 
-        // 当前项目使用演示用户
+        // 当前为单机演示用户
         ownerId:
           "demo-user-001",
 
@@ -326,7 +356,7 @@
         contactValue:
           contactValue,
 
-        // 新发布记录统一为 active
+        // 新发布统一为 active
         status:
           "active",
 
@@ -339,26 +369,28 @@
 
 
       // -------------------------
-      // 加入已有记录
+      // 保存新记录
       // -------------------------
       const nextItems =
         loadResult.data.slice();
 
-      nextItems.push(item);
+
+      nextItems.push(
+        item
+      );
 
 
-      // -------------------------
-      // 保存
-      // -------------------------
       const saveResult =
-        store.save(nextItems);
+        store.save(
+          nextItems
+        );
+
 
       if (!saveResult.ok) {
         return saveResult;
       }
 
 
-      // 只有真正保存成功才返回成功
       return {
         ok: true,
         data: item
@@ -388,10 +420,11 @@
 
 
       // -------------------------
-      // 读取全部记录
+      // 读取数据
       // -------------------------
       const result =
         store.load();
+
 
       if (!result.ok) {
         return result;
@@ -399,18 +432,20 @@
 
 
       // -------------------------
-      // 根据 ID 查找
+      // 查找对应记录
       // -------------------------
       const item =
         result.data.find(
           function (record) {
-            return record.id === itemId;
+            return (
+              record.id === itemId
+            );
           }
         );
 
 
       // -------------------------
-      // 没有找到
+      // 记录不存在
       // -------------------------
       if (!item) {
         return createError(
@@ -420,9 +455,6 @@
       }
 
 
-      // -------------------------
-      // 查询成功
-      // -------------------------
       return {
         ok: true,
         data: item
@@ -431,18 +463,92 @@
 
 
     // =========================
-    // 对外提供的接口
+    // F07
+    // 根据发布者 ID 查询记录
+    // =========================
+    function getByOwner(ownerId) {
+
+      const userId =
+        cleanString(
+          ownerId
+        );
+
+
+      // -------------------------
+      // ownerId 不能为空
+      // -------------------------
+      if (!userId) {
+        return createError(
+          "INVALID_OWNER_ID",
+          "发布者 ID 不能为空"
+        );
+      }
+
+
+      // -------------------------
+      // 读取全部数据
+      // -------------------------
+      const result =
+        store.load();
+
+
+      if (!result.ok) {
+        return result;
+      }
+
+
+      // -------------------------
+      // 只筛选该用户发布的信息
+      // -------------------------
+      const items =
+        result.data.filter(
+          function (item) {
+            return (
+              item.ownerId ===
+              userId
+            );
+          }
+        );
+
+
+      // -------------------------
+      // 按发布时间倒序
+      // -------------------------
+      items.sort(
+        function (a, b) {
+          return (
+            toTimestamp(
+              b.createdAt
+            ) -
+            toTimestamp(
+              a.createdAt
+            )
+          );
+        }
+      );
+
+
+      return {
+        ok: true,
+        data: items
+      };
+    }
+
+
+    // =========================
+    // 对外提供接口
     // =========================
     return {
       list: list,
       create: create,
-      getById: getById
+      getById: getById,
+      getByOwner: getByOwner
     };
   }
 
 
   // =========================
-  // 暴露给其他脚本
+  // 暴露给其他脚本使用
   // =========================
   lostFound.services.createItemService =
     createItemService;
