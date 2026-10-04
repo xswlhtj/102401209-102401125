@@ -145,5 +145,26 @@
     container.querySelector(".detail-not-found__back").href = backHref;
   }
 
-  lostFound.pages.detail = { render: render, renderNotFound: renderNotFound };
+  function renderLoading(container, options) {
+    const document = container.ownerDocument;
+    const template = document.getElementById("detail-template");
+    if (!template) throw new Error("详情页面需要 index.html 中的 detail-template 模板");
+    container.replaceChildren(template.content.cloneNode(true));
+    setNavigation();
+    container.querySelector(".detail-back").href = safeBackHref(options && options.backHref);
+    container.querySelector(".detail-content").hidden = true;
+    const state = container.querySelector(".detail-not-found");
+    state.hidden = false;
+    state.classList.add("detail-loading");
+    state.setAttribute("role", "status");
+    state.setAttribute("aria-live", "polite");
+    const spinner = state.querySelector(".detail-not-found__mark");
+    spinner.className = "feedback-spinner detail-loading__spinner";
+    spinner.textContent = "";
+    state.querySelector("h2").textContent = "正在加载详情";
+    state.querySelector("p").textContent = "请稍候…";
+    state.querySelector(".detail-not-found__back").hidden = true;
+  }
+
+  lostFound.pages.detail = { render: render, renderNotFound: renderNotFound, renderLoading: renderLoading };
 })(globalThis);
