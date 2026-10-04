@@ -333,3 +333,102 @@ describe("item service create", () => {
   });
 
 });
+
+
+describe("item service getById", () => {
+
+  it("存在的 ID 应该返回对应记录", () => {
+    const items = [
+      {
+        id: "item-001",
+        name: "校园卡"
+      },
+      {
+        id: "item-002",
+        name: "黑色蓝牙耳机"
+      }
+    ];
+
+    const store =
+      createFakeStore(items);
+
+    const service =
+      globalThis.LostFound.services
+        .createItemService(store);
+
+    const result =
+      service.getById("item-002");
+
+    expect(result.ok).toBe(true);
+    expect(result.data.id).toBe("item-002");
+    expect(result.data.name).toBe("黑色蓝牙耳机");
+  });
+
+
+  it("不存在的 ID 应该返回 ITEM_NOT_FOUND", () => {
+    const store =
+      createFakeStore([
+        {
+          id: "item-001",
+          name: "校园卡"
+        }
+      ]);
+
+    const service =
+      globalThis.LostFound.services
+        .createItemService(store);
+
+    const result =
+      service.getById("item-999");
+
+    expect(result.ok).toBe(false);
+
+    expect(result.error.code).toBe(
+      "ITEM_NOT_FOUND"
+    );
+  });
+
+
+  it("空 ID 应该返回 INVALID_ID", () => {
+    const store =
+      createFakeStore([]);
+
+    const service =
+      globalThis.LostFound.services
+        .createItemService(store);
+
+    const result =
+      service.getById("   ");
+
+    expect(result.ok).toBe(false);
+
+    expect(result.error.code).toBe(
+      "INVALID_ID"
+    );
+  });
+
+
+  it("读取存储失败时应该返回原有错误", () => {
+    const store =
+      createFakeStore(
+        [],
+        {
+          failLoad: true
+        }
+      );
+
+    const service =
+      globalThis.LostFound.services
+        .createItemService(store);
+
+    const result =
+      service.getById("item-001");
+
+    expect(result.ok).toBe(false);
+
+    expect(result.error.code).toBe(
+      "STORAGE_READ_FAILED"
+    );
+  });
+
+});
