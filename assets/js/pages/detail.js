@@ -16,9 +16,73 @@
   }
 
   function safeBackHref(value) {
-    return typeof value === "string" && (/^#\/home$/.test(value) || /^#\/search(?:\?|$)/.test(value))
+    return typeof value === "string" && (/^#\/home$/.test(value) || /^#\/search(?:\?|$)/.test(value) || /^#\/my\/published(?:\?|$)/.test(value))
       ? value
       : "#/home";
+  }
+
+  function openDialog(dialog) {
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+  }
+
+  function closeDialog(dialog) {
+    if (typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+  }
+
+  function bindContactDialog(container, item, options) {
+    const action = container.querySelector(".detail-contact-action");
+    const dialog = container.querySelector(".contact-dialog");
+    const close = dialog.querySelector(".dialog-close");
+    const value = dialog.querySelector(".contact-copy-value");
+    const copy = dialog.querySelector(".contact-copy-button");
+    const feedback = dialog.querySelector(".contact-copy-feedback");
+    const completeContact = item.contactType + "：" + item.contactValue;
+    let copying = false;
+
+    value.value = completeContact;
+    action.addEventListener("click", function () {
+      feedback.textContent = "";
+      feedback.className = "contact-copy-feedback";
+      copy.disabled = false;
+      copy.textContent = "复制联系方式";
+      openDialog(dialog);
+    });
+    close.addEventListener("click", function () { closeDialog(dialog); });
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) closeDialog(dialog);
+    });
+    copy.addEventListener("click", function () {
+      if (copying) return;
+      copying = true;
+      copy.disabled = true;
+      copy.textContent = "复制中…";
+      feedback.textContent = "";
+      const copyText = options && typeof options.copyText === "function"
+        ? options.copyText
+        : function (text) {
+          if (!root.navigator || !root.navigator.clipboard || typeof root.navigator.clipboard.writeText !== "function") {
+            return Promise.reject(new Error("CLIPBOARD_UNAVAILABLE"));
+          }
+          return root.navigator.clipboard.writeText(text);
+        };
+      Promise.resolve().then(function () {
+        return copyText(completeContact);
+      }).then(function () {
+        feedback.className = "contact-copy-feedback is-success";
+        feedback.textContent = "已复制";
+      }).catch(function () {
+        feedback.className = "contact-copy-feedback is-error";
+        feedback.textContent = "自动复制失败，请选中文本后按 Ctrl+C 手动复制。";
+        value.focus();
+        value.select();
+      }).finally(function () {
+        copying = false;
+        copy.disabled = false;
+        copy.textContent = "复制联系方式";
+      });
+    });
   }
 
   function render(container, item, options) {
@@ -60,6 +124,9 @@
     if (item.status === "closed") {
       container.querySelector(".detail-contact-action").hidden = true;
       container.querySelector(".detail-closed-note").hidden = false;
+      container.querySelector(".contact-dialog").remove();
+    } else {
+      bindContactDialog(container, item, options);
     }
   }
 
