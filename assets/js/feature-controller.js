@@ -2,12 +2,13 @@
   "use strict";
 
   const lostFound = root.LostFound = root.LostFound || {};
+  const CURRENT_USER_ID = "demo-user-001";
 
   function createService() {
     const store = lostFound.data.createStore(root.localStorage);
     const initialized = store.initialize(lostFound.data.demoItems);
     if (!initialized.ok) return initialized;
-    return { ok: true, data: lostFound.services.createItemService(store) };
+    return { ok: true, data: lostFound.services.createItemService(store), store: store };
   }
 
   function normalize(value) {
@@ -16,10 +17,13 @@
 
   function matchesFilters(item, filters) {
     const keyword = normalize(filters.keyword);
-    const typeMatches = filters.type === "all" || item.type === filters.type;
-    const categoryMatches = filters.category === "all" || item.category === filters.category;
+    const type = filters.type === "lost" || filters.type === "found" ? filters.type : "all";
+    const category = typeof filters.category === "string" && filters.category ? filters.category : "all";
+    const typeMatches = type === "all" || item.type === type;
+    const categoryMatches = category === "all" || item.category === category;
+    const ownerMatches = !filters.ownerId || item.ownerId === filters.ownerId;
     const haystack = [item.name, item.category, item.location, item.description].map(normalize).join(" ");
-    return typeMatches && categoryMatches && (!keyword || haystack.includes(keyword));
+    return typeMatches && categoryMatches && ownerMatches && (!keyword || haystack.includes(keyword));
   }
 
   function queryItems(service, filters) {
@@ -48,6 +52,32 @@
       : { ok: false, error: { code: "ITEM_NOT_FOUND", message: "没有找到这条信息" } };
   }
 
+  function closeItem(service, store, id, actorId) {
+    if (typeof service.closeItem === "function") return service.closeItem(id, actorId);
+    // A 完成 F08 后会优先使用正式 closeItem；此兼容段只负责当前联调，校验顺序与接口约定一致。
+    const loadResult = store.load();
+    if (!loadResult.ok) return loadResult;
+    const index = loadResult.data.findIndex(function (item) { return item.id === id; });
+    if (index === -1) {
+      return { ok: false, error: { code: "ITEM_NOT_FOUND", message: "没有找到这条信息" } };
+    }
+    const current = loadResult.data[index];
+    if (current.ownerId !== actorId) {
+      return { ok: false, error: { code: "FORBIDDEN", message: "只能修改自己发布的信息" } };
+    }
+    if (current.status !== "active") {
+      return { ok: false, error: { code: "ITEM_ALREADY_CLOSED", message: "该信息已经完成，不能重复修改" } };
+    }
+    const updated = Object.assign({}, current, {
+      status: "closed",
+      updatedAt: new Date().toISOString()
+    });
+    const nextItems = loadResult.data.slice();
+    nextItems[index] = updated;
+    const saveResult = store.save(nextItems);
+    return saveResult.ok ? { ok: true, data: updated } : saveResult;
+  }
+
   function splitHash(hash) {
     const index = hash.indexOf("?");
     return {
@@ -68,8 +98,13 @@
     return "#/search?" + params.toString();
   }
 
+  function buildMyHash(type) {
+    const normalizedType = type === "lost" || type === "found" ? type : "all";
+    return normalizedType === "all" ? "#/my/published" : "#/my/published?type=" + normalizedType;
+  }
+
   function safeSource(value) {
-    return typeof value === "string" && (/^#\/home$/.test(value) || /^#\/search(?:\?|$)/.test(value))
+    return typeof value === "string" && (/^#\/home$/.test(value) || /^#\/search(?:\?|$)/.test(value) || /^#\/my\/published(?:\?|$)/.test(value))
       ? value
       : "#/home";
   }
@@ -78,7 +113,8 @@
     if (!root.document || typeof root.addEventListener !== "function") return;
     if (lostFound.router && typeof lostFound.router.start === "function") return;
     const container = root.document.getElementById("app");
-    if (!container || !lostFound.pages.search || !lostFound.pages.detail) return;
+    if (!container || !lostFound.pages.search || !lostFound.pages.detail || !lostFound.pages.my) return;
+    let myFeedback = "";
 
     function navigate(hash) {
       if (root.location.hash === hash) route();
@@ -145,7 +181,50 @@
       }
       lostFound.pages.detail.render(container, itemResult.data, {
         backHref: backHref,
-        getStatusText: lostFound.core.getStatusText
+        getStatusText: lostFound.core.getStatusText,
+        copyText: function (text) {
+          if (!root.navigator || !root.navigator.clipboard || typeof root.navigator.clipboard.writeText !== "function") {
+            return Promise.reject(new Error("CLIPBOARD_UNAVAILABLE"));
+          }
+          return root.navigator.clipboard.writeText(text);
+        }
+      });
+    }
+
+    function renderMyPublished(parts) {
+      const type = parts.params.get("type") || "all";
+      const filters = { type: type, ownerId: CURRENT_USER_ID };
+      const serviceResult = createService();
+      let state;
+      if (!serviceResult.ok) {
+        state = { type: type, items: [], error: serviceResult.error.message };
+      } else {
+        const listResult = queryItems(serviceResult.data, filters);
+        state = listResult.ok
+          ? { type: type, items: listResult.data, feedback: myFeedback }
+          : { type: type, items: [], error: listResult.error.message };
+      }
+      myFeedback = "";
+      lostFound.pages.my.renderPublished(container, state, {
+        getStatusText: lostFound.core.getStatusText,
+        getDetailHref: function (id) {
+          const source = root.location.hash || "#/my/published";
+          return "#/detail/" + encodeURIComponent(id) + "?from=" + encodeURIComponent(source);
+        },
+        onFilter: function (nextType) { navigate(buildMyHash(nextType)); },
+        onCloseItem: function (id) {
+          if (!serviceResult.ok) return serviceResult;
+          return closeItem(serviceResult.data, serviceResult.store, id, CURRENT_USER_ID);
+        },
+        onCloseSuccess: function (item) {
+          lostFound.pages.my.renderStatusSuccess(container, item, {
+            getStatusText: lostFound.core.getStatusText,
+            onReturn: function (message) {
+              myFeedback = message;
+              route();
+            }
+          });
+        }
       });
     }
 
@@ -153,6 +232,8 @@
       const parts = splitHash(root.location.hash || "#/home");
       if (parts.path === "#/search") renderSearch(parts);
       else if (/^#\/detail\/[^/]+$/.test(parts.path)) renderDetail(parts);
+      else if (parts.path === "#/my") lostFound.pages.my.renderProfile(container);
+      else if (parts.path === "#/my/published") renderMyPublished(parts);
     }
 
     root.addEventListener("hashchange", route);
