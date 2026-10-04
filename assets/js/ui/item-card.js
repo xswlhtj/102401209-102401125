@@ -23,7 +23,10 @@
     card.dataset.itemId = item.id;
 
     const link = element("a", "item-card__link");
-    link.setAttribute("href", "#/detail/" + encodeURIComponent(item.id));
+    const detailHref = typeof options.getDetailHref === "function"
+      ? options.getDetailHref(item.id)
+      : "#/detail/" + encodeURIComponent(item.id);
+    link.setAttribute("href", detailHref);
     link.setAttribute("aria-label", "查看“" + item.name + "”详情");
     const image = element("img", "item-card__image");
     const fallbackImage = "assets/images/item-placeholder.svg";
