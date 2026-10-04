@@ -62,6 +62,7 @@
       location: form.elements.location.value,
       description: form.elements.description.value,
       image: image,
+      contactType: form.elements.contactType.value,
       contactValue: form.elements.contactValue.value
     };
   }
@@ -82,6 +83,9 @@
     const fileInput = form.elements.imageFile;
     const upload = form.querySelector(".upload-control");
     const preview = form.querySelector(".upload-preview");
+    const removeImage = form.querySelector(".upload-remove");
+    const contactType = form.elements.contactType;
+    const contactValue = form.elements.contactValue;
     let image = "";
     let imageLoading = false;
     let imageVersion = 0;
@@ -90,6 +94,26 @@
     form.elements.eventDate.max = validators.getToday();
     setType(form, initialType === "found" ? "found" : "lost");
     setNavigation("publish");
+
+    function updateContactHint() {
+      const type = contactType.value;
+      contactValue.placeholder = type === "QQ"
+        ? "请输入QQ号"
+        : type === "微信"
+          ? "请输入微信号"
+          : type === "手机号"
+            ? "请输入手机号"
+            : "请先选择联系方式";
+      contactValue.inputMode = type === "QQ" || type === "手机号" ? "numeric" : "text";
+    }
+
+    function clearImagePreview() {
+      image = "";
+      imageLoading = false;
+      upload.classList.remove("has-preview");
+      preview.removeAttribute("src");
+      removeImage.hidden = true;
+    }
 
     form.querySelectorAll("[data-publish-type]").forEach(function (button) {
       button.addEventListener("click", function () {
@@ -110,14 +134,21 @@
       count.textContent = description.value.length + "/200";
     });
 
+    contactType.addEventListener("change", function () {
+      updateContactHint();
+      clearFieldError(form, "contactValue");
+    });
+    updateContactHint();
+
+    fileInput.addEventListener("click", function () {
+      fileInput.value = "";
+    });
+
     fileInput.addEventListener("change", function () {
       const file = fileInput.files[0];
       const version = ++imageVersion;
       clearFieldError(form, "image");
-      image = "";
-      imageLoading = false;
-      upload.classList.remove("has-preview");
-      preview.removeAttribute("src");
+      clearImagePreview();
       if (!file) {
         return;
       }
@@ -138,6 +169,7 @@
         image = String(reader.result || "");
         preview.src = image;
         upload.classList.add("has-preview");
+        removeImage.hidden = false;
         imageLoading = false;
       });
       reader.addEventListener("error", function () {
@@ -146,6 +178,13 @@
         showFieldError(form, "image", "图片读取失败，请重新选择");
       });
       reader.readAsDataURL(file);
+    });
+
+    removeImage.addEventListener("click", function () {
+      imageVersion += 1;
+      fileInput.value = "";
+      clearImagePreview();
+      clearFieldError(form, "image");
     });
 
     form.addEventListener("submit", function (event) {

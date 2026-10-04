@@ -3,6 +3,14 @@
 
   const lostFound = root.LostFound = root.LostFound || {};
   const CURRENT_USER_ID = "demo-user-001";
+  const PROFILE_KEY = "lost-found-profile-v1";
+  const DEFAULT_PROFILE = {
+    name: "张三",
+    qq: "123456789",
+    phone: "13812345678",
+    wechat: "zhangsan_fzu",
+    campus: "旗山校区 · 生活三区"
+  };
 
   function createService() {
     const store = lostFound.data.createStore(root.localStorage);
@@ -40,6 +48,34 @@
     return typeof value === "string" && (/^#\/home$/.test(value) || /^#\/search(?:\?|$)/.test(value) || /^#\/my\/published(?:\?|$)/.test(value))
       ? value
       : "#/home";
+  }
+
+  function normalizeProfile(value) {
+    const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    const profile = {};
+    Object.keys(DEFAULT_PROFILE).forEach(function (key) {
+      profile[key] = typeof source[key] === "string" ? source[key] : DEFAULT_PROFILE[key];
+    });
+    return profile;
+  }
+
+  function loadProfile() {
+    try {
+      const saved = root.localStorage.getItem(PROFILE_KEY);
+      return saved ? normalizeProfile(JSON.parse(saved)) : normalizeProfile(DEFAULT_PROFILE);
+    } catch (error) {
+      return normalizeProfile(DEFAULT_PROFILE);
+    }
+  }
+
+  function saveProfile(profile) {
+    const normalized = normalizeProfile(profile);
+    try {
+      root.localStorage.setItem(PROFILE_KEY, JSON.stringify(normalized));
+      return { ok: true, data: normalized };
+    } catch (error) {
+      return { ok: false, error: { code: "PROFILE_WRITE_FAILED", message: "资料保存失败，请稍后重试" } };
+    }
   }
 
   function installFeatureRoutes() {
@@ -203,7 +239,7 @@
         afterLoading(function () { renderDetail(parts); });
       } else if (parts.path === "#/my") {
         loadVersion += 1;
-        lostFound.pages.my.renderProfile(container);
+        lostFound.pages.my.renderProfile(container, loadProfile(), { onSave: saveProfile });
       } else if (parts.path === "#/my/published") {
         const type = parts.params.get("type") || "all";
         lostFound.pages.my.renderPublished(container, { loading: true, type: type, items: [] }, {
