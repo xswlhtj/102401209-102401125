@@ -155,13 +155,108 @@
     return show;
   }
 
-  function renderProfile(container) {
+  function maskPhone(value) {
+    return /^\d{11}$/.test(value) ? value.slice(0, 3) + "****" + value.slice(-4) : value;
+  }
+
+  function applyProfile(container, profile) {
+    const name = profile.name || "未填写";
+    container.querySelector("[data-profile-name]").textContent = name;
+    container.querySelector("[data-profile-qq]").textContent = profile.qq || "未填写";
+    container.querySelector("[data-profile-phone]").textContent = profile.phone ? maskPhone(profile.phone) : "未填写";
+    container.querySelector("[data-profile-wechat]").textContent = profile.wechat || "未填写";
+    container.querySelector("[data-profile-campus]").textContent = profile.campus || "未填写";
+    container.querySelector(".profile-avatar").alt = name + "的头像";
+  }
+
+  function bindProfileEditor(container, profile, options) {
+    const dialog = container.querySelector(".profile-edit-dialog");
+    const form = dialog.querySelector(".profile-edit-form");
+    const error = dialog.querySelector(".profile-edit-error");
+    const save = dialog.querySelector(".profile-edit-save");
+    const cancel = dialog.querySelector(".profile-edit-cancel");
+    let current = Object.assign({}, profile);
+    let saving = false;
+
+    function resetForm() {
+      Object.keys(current).forEach(function (name) {
+        if (form.elements[name]) form.elements[name].value = current[name];
+      });
+      error.textContent = "";
+    }
+
+    function setSaving(value) {
+      saving = value;
+      save.disabled = value;
+      cancel.disabled = value;
+      save.textContent = value ? "保存中…" : "保存修改";
+    }
+
+    container.querySelector(".profile-edit-open").addEventListener("click", function () {
+      resetForm();
+      openDialog(dialog);
+      form.elements.name.focus();
+    });
+    cancel.addEventListener("click", function () {
+      if (!saving) closeDialog(dialog);
+    });
+    dialog.addEventListener("cancel", function (event) {
+      if (saving) event.preventDefault();
+    });
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog && !saving) closeDialog(dialog);
+    });
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (saving) return;
+      const next = {
+        name: form.elements.name.value.trim(),
+        qq: form.elements.qq.value.trim(),
+        phone: form.elements.phone.value.trim(),
+        wechat: form.elements.wechat.value.trim(),
+        campus: form.elements.campus.value.trim()
+      };
+      const validators = lostFound.core.validators;
+      if (!next.name) error.textContent = "请输入姓名";
+      else if (next.qq && !validators.validateContact(next.qq, "QQ").valid) error.textContent = "请输入正确的QQ号";
+      else if (next.phone && !validators.validateContact(next.phone, "手机号").valid) error.textContent = "请输入正确的手机号";
+      else if (next.wechat && !validators.validateContact(next.wechat, "微信").valid) error.textContent = "请输入正确的微信号";
+      else if (next.campus.length > 30) error.textContent = "常用校区/宿舍区不能超过30个字";
+      else error.textContent = "";
+      if (error.textContent) return;
+
+      setSaving(true);
+      Promise.resolve().then(function () {
+        return options.onSave(next);
+      }).then(function (result) {
+        if (!result || !result.ok) {
+          error.textContent = result && result.error && result.error.message ? result.error.message : "资料保存失败，请稍后重试";
+          setSaving(false);
+          return;
+        }
+        current = Object.assign({}, result.data);
+        applyProfile(container, current);
+        setSaving(false);
+        closeDialog(dialog);
+      }).catch(function () {
+        error.textContent = "资料保存失败，请稍后重试";
+        setSaving(false);
+      });
+    });
+  }
+
+  function renderProfile(container, profile, options) {
     const document = container.ownerDocument;
     const template = document.getElementById("profile-template");
     if (!template) throw new Error("个人资料页面需要 index.html 中的 profile-template 模板");
+    if (!profile || !options || typeof options.onSave !== "function") {
+      throw new TypeError("个人资料页面需要资料数据和保存接口");
+    }
     container.replaceChildren(template.content.cloneNode(true));
     const avatar = container.querySelector(".profile-avatar");
     avatar.addEventListener("error", function () { avatar.src = "assets/images/item-placeholder.svg"; }, { once: true });
+    applyProfile(container, profile);
+    bindProfileEditor(container, profile, options);
     setNavigation();
   }
 
@@ -206,6 +301,16 @@
     if (state.feedback) {
       feedback.hidden = false;
       feedback.textContent = state.feedback;
+      root.setTimeout(function () {
+        if (!feedback.isConnected) return;
+        feedback.classList.add("is-hiding");
+        root.setTimeout(function () {
+          if (!feedback.isConnected) return;
+          feedback.hidden = true;
+          feedback.textContent = "";
+          feedback.classList.remove("is-hiding");
+        }, 250);
+      }, 2500);
     }
     if (state.error) {
       empty.hidden = false;

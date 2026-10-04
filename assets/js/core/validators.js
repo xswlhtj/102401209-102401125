@@ -40,9 +40,25 @@
     return { valid: true, value: eventDate };
   }
 
-  function validateContact(value) {
+  function validateContact(value, selectedType) {
     const contact = clean(value);
+    const contactType = clean(selectedType);
     if (!contact) return { valid: false, value: contact, message: "请输入联系方式" };
+    if (contactType) {
+      if (!["QQ", "微信", "手机号"].includes(contactType)) {
+        return { valid: false, value: contact, message: "请选择联系方式类型" };
+      }
+      if (contactType === "QQ" && !/^\d{5,12}$/.test(contact)) {
+        return { valid: false, value: contact, message: "请输入正确的QQ号" };
+      }
+      if (contactType === "手机号" && !/^1[3-9]\d{9}$/.test(contact)) {
+        return { valid: false, value: contact, message: "请输入正确的手机号" };
+      }
+      if (contactType === "微信" && !/^[A-Za-z][A-Za-z0-9_-]{5,19}$/.test(contact)) {
+        return { valid: false, value: contact, message: "请输入正确的微信号" };
+      }
+      return { valid: true, value: contact, contactType: contactType };
+    }
     if (/^\d+$/.test(contact)) {
       if (contact.length === 11) {
         if (!/^1[3-9]\d{9}$/.test(contact)) return { valid: false, value: contact, message: "请输入正确的手机号" };
@@ -61,7 +77,8 @@
     const source = values && typeof values === "object" ? values : {};
     const name = validateName(source.name);
     const eventDate = validateEventDate(source.eventDate, now);
-    const contact = validateContact(source.contactValue);
+    const contactType = clean(source.contactType);
+    const contact = validateContact(source.contactValue, contactType);
     const category = clean(source.category);
     const location = clean(source.location);
     const description = clean(source.description);
@@ -73,6 +90,7 @@
     if (!location) errors.location = "请输入地点";
     else if (location.length > 50) errors.location = "地点不能超过50个字";
     if (description.length > 200) errors.description = "物品描述不能超过200个字";
+    if (!["QQ", "微信", "手机号"].includes(contactType)) errors.contactType = "请选择联系方式";
     if (!contact.valid) errors.contactValue = contact.message;
 
     return {
@@ -86,7 +104,7 @@
         location: location,
         description: description,
         image: clean(source.image),
-        contactType: contact.contactType || "",
+        contactType: contactType,
         contactValue: contact.value
       }
     };

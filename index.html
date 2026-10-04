@@ -86,7 +86,7 @@
           <a class="home-action home-action--lost" href="#/publish/lost"><span class="search-icon" aria-hidden="true"></span><span>发布寻物<span class="home-action__arrow" aria-hidden="true">›</span></span></a>
           <a class="home-action home-action--found" href="#/publish/found"><img src="assets/images/figma/box.svg" alt=""><span>发布招领<span class="home-action__arrow" aria-hidden="true">›</span></span></a>
         </div>
-        <div class="home-feed__heading"><h2 id="home-feed-title">最新信息</h2><button class="home-feed__more" type="button" disabled>更多 ›</button></div>
+        <div class="home-feed__heading"><h2 id="home-feed-title">最新信息</h2><a class="home-feed__more" href="#/search?searched=1">更多 ›</a></div>
         <div class="home-scroll" role="region" aria-labelledby="home-feed-title" tabindex="0">
           <ul class="home-list"></ul>
         </div>
@@ -176,20 +176,34 @@
       <section class="profile-panel" aria-label="个人资料">
         <article class="profile-card">
           <img class="profile-avatar" src="assets/images/figma/avatar.png" alt="张三的头像" width="94" height="94">
-          <div><h2>张三</h2><p>福州大学学生</p><span class="profile-school">🎓 福州大学</span></div>
+          <div><h2 data-profile-name>张三</h2><p>福州大学学生</p><span class="profile-school">🎓 福州大学</span></div>
         </article>
         <article class="profile-contact-card">
           <h2>我的联系方式</h2>
-          <p><span class="profile-appicon profile-appicon--qq">QQ</span><span>QQ</span><strong>123456789</strong></p>
-          <p><span class="profile-appicon profile-appicon--phone">☎</span><span>手机号</span><strong>138****5678</strong></p>
-          <p><span class="profile-appicon profile-appicon--wechat">微</span><span>微信</span><strong>zhangsan_fzu</strong></p>
-          <p><span class="profile-appicon profile-appicon--campus">●</span><span>常用校区/宿舍区</span><strong>旗山校区 · 生活三区</strong></p>
+          <p><span class="profile-appicon profile-appicon--qq">QQ</span><span>QQ</span><strong data-profile-qq>123456789</strong></p>
+          <p><span class="profile-appicon profile-appicon--phone">☎</span><span>手机号</span><strong data-profile-phone>138****5678</strong></p>
+          <p><span class="profile-appicon profile-appicon--wechat">微</span><span>微信</span><strong data-profile-wechat>zhangsan_fzu</strong></p>
+          <p><span class="profile-appicon profile-appicon--campus">●</span><span>常用校区/宿舍区</span><strong data-profile-campus>旗山校区 · 生活三区</strong></p>
         </article>
         <article class="profile-menu-card">
           <a class="profile-menu-row" href="#/my/published"><span class="profile-menu-icon">▣</span><span><strong>我的发布</strong><small>查看我发布的寻物与招领信息</small></span><span aria-hidden="true">›</span></a>
-          <button class="profile-menu-row" type="button" disabled><span class="profile-menu-icon profile-menu-icon--muted">✎</span><span><strong>编辑资料</strong><small>修改个人信息与联系方式</small></span><span aria-hidden="true">›</span></button>
+          <button class="profile-menu-row profile-edit-open" type="button"><span class="profile-menu-icon">✎</span><span><strong>编辑资料</strong><small>修改个人信息与联系方式</small></span><span aria-hidden="true">›</span></button>
         </article>
       </section>
+      <dialog class="profile-edit-dialog" aria-labelledby="profile-edit-title">
+        <div class="dialog-handle" aria-hidden="true"></div>
+        <h2 id="profile-edit-title">编辑个人资料</h2>
+        <form class="profile-edit-form" novalidate>
+          <label>姓名<input name="name" type="text" maxlength="20" autocomplete="name"></label>
+          <label>QQ<input name="qq" type="text" inputmode="numeric" maxlength="12" autocomplete="off"></label>
+          <label>手机号<input name="phone" type="tel" inputmode="tel" maxlength="11" autocomplete="tel"></label>
+          <label>微信<input name="wechat" type="text" maxlength="20" autocomplete="off"></label>
+          <label>常用校区/宿舍区<input name="campus" type="text" maxlength="30" autocomplete="off"></label>
+          <p class="profile-edit-error" role="alert" aria-live="assertive"></p>
+          <button class="profile-edit-save" type="submit">保存修改</button>
+          <button class="profile-edit-cancel" type="button">取消</button>
+        </form>
+      </dialog>
     </section>
   </template>
   <template id="my-published-template">
@@ -266,8 +280,9 @@
             <div class="publish-row" data-field-row="eventDate"><label for="publish-date">时间</label><div><input id="publish-date" name="eventDate" type="date" aria-describedby="publish-date-error"><small id="publish-date-error" class="field-error"></small></div></div>
             <div class="publish-row" data-field-row="location"><label for="publish-location">地点</label><div><input id="publish-location" name="location" type="text" maxlength="51" aria-describedby="publish-location-error"><small id="publish-location-error" class="field-error"></small></div></div>
             <div class="publish-row publish-row--description" data-field-row="description"><label for="publish-description">物品描述</label><div><textarea id="publish-description" name="description" maxlength="201" placeholder="请填写物品颜色、外观、特征等信息" aria-describedby="publish-description-error publish-description-count"></textarea><span id="publish-description-count" class="description-count">0/200</span><small id="publish-description-error" class="field-error"></small></div></div>
-            <div class="publish-row publish-row--upload" data-field-row="image"><span class="publish-label">物品图片</span><div><label class="upload-control" for="publish-image"><span class="upload-control__plus" aria-hidden="true">＋</span><span class="upload-control__text">上传图片</span><img class="upload-preview" alt="已选择的物品图片预览"></label><input id="publish-image" class="visually-hidden" name="imageFile" type="file" accept="image/*" aria-describedby="publish-image-error"><small id="publish-image-error" class="field-error"></small></div></div>
-            <div class="publish-row" data-field-row="contactValue"><label for="publish-contact">联系方式</label><div><input id="publish-contact" name="contactValue" type="text" maxlength="30" placeholder="请输入QQ、微信或手机号" aria-describedby="publish-contact-error"><small id="publish-contact-error" class="field-error"></small></div></div>
+            <div class="publish-row publish-row--upload" data-field-row="image"><span class="publish-label">物品图片</span><div class="upload-picker"><label class="upload-control" for="publish-image"><span class="upload-control__plus" aria-hidden="true">＋</span><span class="upload-control__text">上传图片</span><img class="upload-preview" alt="已选择的物品图片预览"><span class="upload-control__replace">点击更换</span></label><button class="upload-remove" type="button" hidden>删除图片</button><input id="publish-image" class="visually-hidden" name="imageFile" type="file" accept="image/*" aria-describedby="publish-image-error"><small id="publish-image-error" class="field-error"></small></div></div>
+            <div class="publish-row" data-field-row="contactType"><label for="publish-contact-type">联系方式</label><div><select id="publish-contact-type" name="contactType" required aria-describedby="publish-contact-type-error"><option value="">请选择联系方式</option><option value="QQ">QQ</option><option value="微信">微信</option><option value="手机号">手机号</option></select><small id="publish-contact-type-error" class="field-error"></small></div></div>
+            <div class="publish-row" data-field-row="contactValue"><label for="publish-contact">联系账号</label><div><input id="publish-contact" name="contactValue" type="text" maxlength="30" placeholder="请先选择联系方式" aria-describedby="publish-contact-error"><small id="publish-contact-error" class="field-error"></small></div></div>
           </div>
           <p class="publish-form-error" role="alert" aria-live="polite"></p>
           <button class="publish-submit" type="submit">发布信息</button>
