@@ -28,6 +28,9 @@
   <script defer src="assets/js/pages/home.js"></script>
   <!-- B：寻物/招领共用发布页面 -->
   <script defer src="assets/js/pages/publish.js"></script>
+  <!-- B：搜索和详情页面 -->
+  <script defer src="assets/js/pages/search.js"></script>
+  <script defer src="assets/js/pages/detail.js"></script>
 
   <!-- B：首页临时预览；检测到 app.js 后会自动跳过 -->
   <script defer src="assets/js/pages/home-preview.js"></script>
@@ -36,6 +39,8 @@
   <script defer src="assets/js/app.js"></script>
   <!-- B：在 A 的正式路由接入前，连接发布页与 A 的数据服务 -->
   <script defer src="assets/js/publish-controller.js"></script>
+  <!-- B：在 A 的正式路由接入前，连接搜索/详情页与 A 的数据服务 -->
+  <script defer src="assets/js/feature-controller.js"></script>
   
 </head>
 <body>
@@ -74,7 +79,7 @@
         <p class="home-hero__description">让失物更快回到主人身边</p>
       </header>
       <section class="home-panel" aria-label="首页信息">
-        <button class="home-search" type="button" disabled><span class="search-icon" aria-hidden="true"></span><span class="home-search__placeholder">搜索物品，例如：校园卡</span></button>
+        <a class="home-search" href="#/search"><span class="search-icon" aria-hidden="true"></span><span class="home-search__placeholder">搜索物品，例如：校园卡</span></a>
         <div class="home-actions">
           <a class="home-action home-action--lost" href="#/publish/lost"><span class="search-icon" aria-hidden="true"></span><span>发布寻物<span class="home-action__arrow" aria-hidden="true">›</span></span></a>
           <a class="home-action home-action--found" href="#/publish/found"><img src="assets/images/figma/box.svg" alt=""><span>发布招领<span class="home-action__arrow" aria-hidden="true">›</span></span></a>
@@ -82,6 +87,69 @@
         <div class="home-feed__heading"><h2 id="home-feed-title">最新信息</h2><button class="home-feed__more" type="button" disabled>更多 ›</button></div>
         <div class="home-scroll" role="region" aria-labelledby="home-feed-title" tabindex="0">
           <ul class="home-list"></ul>
+        </div>
+      </section>
+    </section>
+  </template>
+  <template id="search-template">
+    <section class="search-page">
+      <header class="search-hero">
+        <img class="search-hero__art" src="assets/images/figma/hero-main.svg" alt="" width="430" height="230">
+        <div class="prototype-status" aria-hidden="true"><span>9:41</span><span class="prototype-status__icons"><span class="prototype-signal"><i></i><i></i><i></i><i></i></span><span class="prototype-wifi"><img class="prototype-wifi__lines" src="assets/images/figma/wifi-lines.svg" alt=""><img class="prototype-wifi__dot" src="assets/images/figma/wifi-dot.svg" alt=""></span><span class="prototype-battery"></span></span></div>
+        <a class="page-back" href="#/home" aria-label="返回首页"><span></span></a>
+        <h1>搜索物品</h1>
+      </header>
+      <section class="search-panel" aria-label="搜索失物招领信息">
+        <form class="search-form" role="search">
+          <label class="search-box" for="search-keyword"><span class="search-icon" aria-hidden="true"></span><input id="search-keyword" name="keyword" type="search" maxlength="50" autocomplete="off" placeholder="搜索物品，例如：校园卡"></label>
+          <button class="search-submit" type="submit">搜索</button>
+        </form>
+        <div class="search-filters" aria-label="搜索筛选条件" hidden>
+          <div class="search-type-filters" role="group" aria-label="物品类型">
+            <button type="button" data-search-type="all">全部</button>
+            <button type="button" data-search-type="lost"><span class="search-icon" aria-hidden="true"></span>寻物</button>
+            <button type="button" data-search-type="found"><img src="assets/images/figma/box-muted.svg" alt="" width="25" height="25">招领</button>
+          </div>
+          <div class="search-extra-filters">
+            <label for="search-category">物品类别</label>
+            <select id="search-category" name="category"><option value="all">全部类别</option><option>电子设备</option><option>证件卡片</option><option>雨具</option><option>书籍资料</option><option>生活用品</option><option>其他</option></select>
+            <button class="search-clear" type="button">清除条件</button>
+          </div>
+        </div>
+        <div class="search-content" aria-live="polite"></div>
+      </section>
+    </section>
+  </template>
+  <template id="detail-template">
+    <section class="detail-page">
+      <header class="compact-hero">
+        <img class="compact-hero__art" src="assets/images/figma/hero-main.svg" alt="" width="430" height="230">
+        <div class="prototype-status" aria-hidden="true"><span>9:41</span><span class="prototype-status__icons"><span class="prototype-signal"><i></i><i></i><i></i><i></i></span><span class="prototype-wifi"><img class="prototype-wifi__lines" src="assets/images/figma/wifi-lines.svg" alt=""><img class="prototype-wifi__dot" src="assets/images/figma/wifi-dot.svg" alt=""></span><span class="prototype-battery"></span></span></div>
+        <a class="page-back detail-back" href="#/home" aria-label="返回上一页"><span></span></a>
+        <h1>信息详情</h1>
+      </header>
+      <section class="detail-panel" aria-labelledby="detail-title">
+        <div class="detail-content">
+          <img class="detail-image" alt="">
+          <span class="detail-type"></span>
+          <h2 id="detail-title"></h2>
+          <div class="detail-info-box">
+            <p><img src="assets/images/figma/clock.svg" alt="" width="20" height="20"><span data-detail-time-label></span><strong data-detail-date></strong></p>
+            <p><img src="assets/images/figma/location.svg" alt="" width="20" height="20"><span data-detail-location-label></span><strong data-detail-location></strong></p>
+            <p><span class="detail-status-icon" aria-hidden="true"></span><span>当前状态：</span><strong class="detail-status"></strong></p>
+          </div>
+          <h3>物品描述</h3>
+          <p class="detail-description"></p>
+          <h3>联系方式</h3>
+          <p class="detail-contact"><span aria-hidden="true">♟</span><strong data-detail-contact></strong></p>
+          <button class="detail-contact-action" type="button" disabled title="一键联系将在 F06 中实现">联系发布者</button>
+          <p class="detail-closed-note" hidden>该信息已经完成，不再引导联系发布者。</p>
+        </div>
+        <div class="detail-not-found" hidden>
+          <div class="detail-not-found__mark" aria-hidden="true">?</div>
+          <h2>没有找到这条信息</h2>
+          <p>该记录可能已删除，或链接地址不正确。</p>
+          <a class="detail-not-found__back" href="#/home">返回首页</a>
         </div>
       </section>
     </section>
