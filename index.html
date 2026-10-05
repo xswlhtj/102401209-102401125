@@ -9,40 +9,36 @@
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/pages.css">
-  <!-- A：状态业务规则 -->
+  <!-- 核心业务规则 -->
   <script defer src="assets/js/core/status.js"></script>
-  <!-- B：发布表单校验 -->
   <script defer src="assets/js/core/validators.js"></script>
 
-  <!-- A：演示数据和本地存储 -->
+  <!-- 数据层 -->
   <script defer src="assets/js/data/demo-data.js"></script>
   <script defer src="assets/js/data/store.js"></script>
 
-  <!-- A：业务服务 -->
+  <!-- 业务服务 -->
   <script defer src="assets/js/services/item-service.js"></script>
 
-  <!-- B：界面组件 -->
+  <!-- 通用界面组件 -->
   <script defer src="assets/js/ui/item-card.js"></script>
 
-  <!-- B：首页页面 -->
+  <!-- 页面渲染模块 -->
   <script defer src="assets/js/pages/home.js"></script>
-  <!-- B：寻物/招领共用发布页面 -->
   <script defer src="assets/js/pages/publish.js"></script>
-  <!-- B：搜索和详情页面 -->
   <script defer src="assets/js/pages/search.js"></script>
   <script defer src="assets/js/pages/detail.js"></script>
-  <!-- B：个人资料和我的发布页面 -->
   <script defer src="assets/js/pages/my.js"></script>
 
-  <!-- B：首页临时预览；检测到 app.js 后会自动跳过 -->
-  <script defer src="assets/js/pages/home-preview.js"></script>
-
-  <!-- A：应用入口 -->
-  <script defer src="assets/js/app.js"></script>
-  <!-- B：在 A 的正式路由接入前，连接发布页与 A 的数据服务 -->
-  <script defer src="assets/js/publish-controller.js"></script>
-  <!-- B：在 A 的正式路由接入前，连接搜索/详情页与 A 的数据服务 -->
+  <!-- 控制器：只提供页面处理能力，不再各自监听 hashchange -->
   <script defer src="assets/js/feature-controller.js"></script>
+  <script defer src="assets/js/publish-controller.js"></script>
+
+  <!-- A：统一 Hash 路由 -->
+  <script defer src="assets/js/router.js"></script>
+
+  <!-- A：应用入口，最后启动 -->
+  <script defer src="assets/js/app.js"></script>
   
 </head>
 <body>
