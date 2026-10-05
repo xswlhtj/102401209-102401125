@@ -44,9 +44,10 @@ web_development/
 │  │  ├─ figma/                 # Figma 原型插图、图标和示例图片
 │  │  └─ item-placeholder.svg   # 图片异常时使用的占位图
 │  └─ js/
-│     ├─ app.js                 # 应用初始化和首页数据接入
-│     ├─ publish-controller.js  # 发布页路由与服务衔接
-│     ├─ feature-controller.js  # 搜索、详情、个人页等路由
+│     ├─ app.js                 # 初始化本地数据并启动统一路由
+│     ├─ router.js              # 统一解析和分发 Hash 路由
+│     ├─ publish-controller.js  # 处理首页、发布表单和成功页
+│     ├─ feature-controller.js  # 处理搜索、详情和个人相关页面
 │     ├─ core/
 │     │  ├─ status.js           # 状态文字转换规则
 │     │  └─ validators.js       # 发布表单和联系方式校验
@@ -59,6 +60,7 @@ web_development/
 │     │  └─ item-card.js        # 首页和搜索页复用的物品卡片
 │     └─ pages/
 │        ├─ home.js             # 首页
+│        ├─ home-preview.js     # 首页独立预览备用脚本
 │        ├─ publish.js          # 发布表单和成功页
 │        ├─ search.js           # 搜索、筛选和结果状态
 │        ├─ detail.js           # 详情和联系方式弹层
@@ -74,6 +76,8 @@ web_development/
 ```
 
 `node_modules/` 由 `npm ci` 自动生成，只用于运行测试，不需要修改或提交。
+
+当前路由由 `router.js` 统一管理：它解析浏览器 Hash，将首页和发布相关地址交给 `publish-controller.js`，将搜索、详情和个人相关地址交给 `feature-controller.js`；`app.js` 只负责初始化数据并启动路由。
 
 ## 运行方法
 
